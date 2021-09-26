@@ -1,0 +1,7 @@
+node_modules
+lib
+lib-esm
+_bundles
+bundles
+.directory
+**/bak
