@@ -7,32 +7,31 @@ import { promisify } from 'util';
 import VinylFile from 'vinyl';
 import { SvgDimension } from './svg-dimension';
 
-
-// export type Format = svg2imgOptions[ 'format' ];
-export enum Format {
+// Format in svg2img is not exported !!!
+export enum Svg2ImgFormat {
     jpeg = 'jpeg',
     jpg = 'jpg',
     png = 'png',
 }
 
-export class Svg2ImgOptions {
-    width?: number = 100;
-    height?: number;
-    scale?: number = 1;
-    preserveAspectRatio?: boolean = true;
-    format?: Format = Format.png;
-}
 
+export type Svg2ImgOptions = Omit<svg2imgOptions, 'format'> & { format?: Svg2ImgFormat; scale?: number; };
 
-class Svg2Img {
+class Svg2ImgTransform {
     public pluginName = this.constructor.name;
     public options: Svg2ImgOptions;
 
     constructor(options?: Partial<Svg2ImgOptions>) {
-        this.options = Object.assign(new Svg2ImgOptions(), options);
+        this.options = {
+            width: 100,
+            scale: 1,
+            preserveAspectRatio: true,
+            format: Svg2ImgFormat.png,
+            ...options
+        };
     }
 
-    run(options?: Partial<Svg2ImgOptions>): stream.Transform {
+    create(options?: Partial<Svg2ImgOptions>): stream.Transform {
         const opts = Object.assign(this.options, options);
 
         const throughOptions = { objectMode: true };
@@ -83,7 +82,8 @@ class Svg2Img {
     private async transformGulpSvg2Img(file: VinylFile, options: Svg2ImgOptions, cb: stream.TransformCallback) {
         try {
             const svg2img$ = promisify<string, svg2imgOptions, Buffer>(svg2img);
-            const buffer: Buffer = await svg2img$(file.path, options);
+            // because of format not being exported, we are obliged to cast-force the "options"
+            const buffer: Buffer = await svg2img$(file.path, options as unknown as svg2imgOptions);
 
             const { name: fileNameNoExt, dir } = path.parse(file.path);
             const ext = options.format || 'png';
@@ -100,6 +100,6 @@ class Svg2Img {
 }
 
 
-export function svg2Img(options?: Partial<Svg2ImgOptions>) {
-    return new Svg2Img(options).run();
+export function svg2ImgTransform(options?: Partial<Svg2ImgOptions>) {
+    return new Svg2ImgTransform(options).create();
 }

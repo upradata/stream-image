@@ -1,90 +1,93 @@
 {
-    "name": "@upradata/stream-image",
-    "author": {
-        "name": "Thomas Milotti (Upra-Data)",
-        "email": "thomas.milotti@gmail.com",
-        "url": "https://github.com/upradata"
-    },
-    "repository": {
-        "url": "https://github.com/upradata/stream-image.git"
-    },
-    "license": "MIT",
-    "version": "1.0.25",
-    "description": "Stream image functionalities",
-    "sideEffects": false,
-    "main": "lib",
-    "types": "lib-esm",
-    "module": "lib-esm",
-    "files": [
-        "lib",
-        "lib-esm"
-    ],
-    "esm": {
-        "mainFields": [
-            "module",
-            "main"
-        ]
-    },
-    "scripts": {
-        "clean": "shx rm -rf lib lib-esm",
-        "pre:build": "npm run clean",
-        "build": "concurrently 'tsc -p tsconfig.lib.json' 'tsc -p tsconfig.lib-esm.json' && npm run copy:declaration",
-        "post:build": "npm run test && npm run e2e",
-        "copy:declaration": "cp src/@types/webpack.d.ts lib/@types && cp src/@types/webpack.d.ts lib-esm/@types",
-        "watch": "npm run build:watch",
-        "build:watch": "concurrently 'tsc -p tsconfig.lib.json -w' 'tsc -p tsconfig.lib-esm.json -w'",
-        "test": "npx jest --verbose false --config jest-ut.config.js",
-        "e2e": "npx jest --passWithNoTests --verbose false --config jest-e2e.config.js",
-        "github-push": "npm version patch && git pushall && git pushall-tags",
-        "npm-publish": "npm run build && npm publish --access public"
-    },
-    "dependencies": {
-        "fs-extra": "^10.0.0",
-        "imagemin": "^8.0.1",
-        "minimatch": "^3.0.4",
-        "plugin-error": "^1.0.1",
-        "plur": "^4.0.0",
-        "pretty-bytes": "^5.6.0",
-        "rename": "^1.0.4",
-        "sharp": "^0.29.1",
-        "svg2img": "^0.9.3",
-        "svgson": "^5.2.1",
-        "through2": "^4.0.2",
-        "through2-concurrent": "^2.0.0",
-        "vinyl": "^2.2.1"
-    },
-    "devDependencies": {
-        "@types/fs-extra": "^9.0.13",
-        "@types/imagemin": "^7.0.1",
-        "@types/minimatch": "^3.0.5",
-        "@types/node": "^16.10.1",
-        "@types/rename": "^1.0.4",
-        "@types/sharp": "^0.29.2",
-        "@types/supports-color": "^8.1.1",
-        "@types/through2": "^2.0.36",
-        "@types/through2-concurrent": "^2.0.1",
-        "@types/vinyl": "^2.0.6",
-        "concurrently": "^6.2.1",
-        "jest": "^27.2.2",
-        "shx": "^0.3.3",
-        "tapable": "^2.2.1",
-        "typescript": "^4.4.3"
-    },
-    "keywords": [
-        "stream",
-        "image",
-        "util"
-    ],
-    "publishConfig": {
-        "access": "public"
-    },
-    "local": {
-        "dependencies": {
-            "@upradata/util": "link:/home/milottit/Libraries/Upra-Data/util@13.0.1",
-            "@upradata/node-util": "link:/home/milottit/Libraries/Upra-Data/node-util@14.0.2"
-        },
-        "usedBy": {
-            "@upradata/tilda-tools": "/home/milottit/Libraries/Tilda/tools"
-        }
-    }
+	"name": "@upradata/stream-image",
+	"author": {
+		"name": "Thomas Milotti (Upra-Data)",
+		"email": "thomas.milotti@gmail.com",
+		"url": "https://github.com/upradata"
+	},
+	"repository": {
+		"url": "https://github.com/upradata/stream-image.git"
+	},
+	"license": "MIT",
+	"version": "1.0.25",
+	"description": "Stream image functionalities",
+	"sideEffects": false,
+	"main": "lib",
+	"types": "lib-esm",
+	"module": "lib-esm",
+	"files": [
+		"lib",
+		"lib-esm"
+	],
+	"esm": {
+		"mainFields": [
+			"module",
+			"main"
+		]
+	},
+	"scripts": {
+		"clean": "shx rm -rf lib lib-esm",
+		"pre:build": "npm run clean",
+		"build": "concurrently 'tsc -p tsconfig.lib.json' 'tsc -p tsconfig.lib-esm.json' && npm run copy:declaration",
+		"post:build": "npm run test && npm run e2e",
+		"copy:declaration": "cp src/@types/webpack.d.ts lib/@types && cp src/@types/webpack.d.ts lib-esm/@types",
+		"watch": "npm run build:watch",
+		"build:watch": "concurrently 'tsc -p tsconfig.lib.json -w' 'tsc -p tsconfig.lib-esm.json -w'",
+		"test": "npx jest --verbose false --config jest-ut.config.js",
+		"e2e": "npx jest --passWithNoTests --verbose false --config jest-e2e.config.js",
+		"github-push": "npm version patch && git pushall && git pushall-tags",
+		"npm-publish": "npm run build && npm publish --access public"
+	},
+	"dependencies": {
+		"fs-extra": "^10.0.0",
+		"imagemin": "^8.0.1",
+		"minimatch": "^3.0.4",
+		"plugin-error": "^1.0.1",
+		"plur": "^4.0.0",
+		"pretty-bytes": "^5.6.0",
+		"rename": "^1.0.4",
+		"sharp": "^0.29.1",
+		"svg2img": "^0.9.3",
+		"svgo": "^2.7.0",
+		"svgson": "^5.2.1",
+		"through2": "^4.0.2",
+		"through2-concurrent": "^2.0.0",
+		"vinyl": "^2.2.1"
+	},
+	"devDependencies": {
+		"@types/fs-extra": "^9.0.13",
+		"@types/gulp-rename": "^2.0.1",
+		"@types/imagemin": "^7.0.1",
+		"@types/minimatch": "^3.0.5",
+		"@types/node": "^16.10.1",
+		"@types/rename": "^1.0.4",
+		"@types/sharp": "^0.29.2",
+		"@types/supports-color": "^8.1.1",
+		"@types/svgo": "^2.4.2",
+		"@types/through2": "^2.0.36",
+		"@types/through2-concurrent": "^2.0.1",
+		"@types/vinyl": "^2.0.6",
+		"concurrently": "^6.2.1",
+		"jest": "^27.2.2",
+		"shx": "^0.3.3",
+		"tapable": "^2.2.1",
+		"typescript": "^4.4.3"
+	},
+	"keywords": [
+		"stream",
+		"image",
+		"util"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"local": {
+		"dependencies": {
+			"@upradata/util": "link:/home/milottit/Libraries/Upra-Data/util@13.0.1",
+			"@upradata/node-util": "link:/home/milottit/Libraries/Upra-Data/node-util@14.0.2"
+		},
+		"usedBy": {
+			"@upradata/tilda-tools": "/home/milottit/Libraries/Tilda/tools"
+		}
+	}
 }

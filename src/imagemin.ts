@@ -15,7 +15,7 @@ const loadPlugin = (plugin: string, ...args: any[]) => {
         // eslint-disable-next-line global-require
         return require(`imagemin-${plugin}`)(...args);
     } catch (error) {
-        console.log(`${ImageMin.name}: Couldn't load default plugin "${plugin}"`);
+        console.log(`${ImageMinTransform.name}: Couldn't load default plugin "${plugin}"`);
     }
 };
 
@@ -28,7 +28,7 @@ export class ImageMinOptions {
     title: string = '';
 }
 
-export class ImageMin {
+export class ImageMinTransform {
     static gifsicle = exposePlugin('gifsicle');
     static jpegtran = exposePlugin('jpegtran');
     static optipng = exposePlugin('optipng');
@@ -65,7 +65,7 @@ export class ImageMin {
         return plugins;
     }
 
-    run() {
+    create() {
         if (this.used)
             throw new Error(`${this.pluginName} Error: run can be used only once.`);
 
@@ -146,6 +146,6 @@ export class ImageMin {
 }
 
 
-export function imageMin(options?: Partial<ImageMinOptions>) {
-    return new ImageMin(options).run();
+export function imageMinTransform(options?: Partial<ImageMinOptions>) {
+    return new ImageMinTransform(options).create();
 }

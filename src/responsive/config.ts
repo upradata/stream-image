@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import * as rename from 'gulp-rename';
 import { Arr, isPlainObject, ObjectOf, TT } from '@upradata/util';
 /*
 Configuration unit is an object:
@@ -54,10 +55,11 @@ Configuration can be provided in one of the following formats:
 
 */
 
+export type Rename = string | rename.Options | ((path: rename.ParsedPath) => any);
 
 export type ResponsiveFormat = 'jpeg' | 'jpg' | 'jpe' | 'png' | 'tiff' | 'webp' | keyof sharp.FormatEnum | sharp.AvailableFormatInfo;
 
-export class ResponsiveConfig {
+export class ResponsiveImageOptions {
     crop: 'entropy' | 'attention' | string | number = undefined;
     embed: boolean = false;
     min: boolean = false;
@@ -90,20 +92,20 @@ export class ResponsiveConfig {
     format: ResponsiveFormat;
     trim: number = undefined;
     name: string;
-    rename: string;
-    width: string;
-    height: string;
+    rename: Rename;
+    width: number;
+    height: number;
 }
 
-type Config = Partial<ResponsiveConfig>;
-export type ResponsiveConfigs = Arr<Config, 'mutable'> | ObjectOf<TT<Config, 'mutable'>>;
+export type ResponsiveImageOpts = Partial<ResponsiveImageOptions>;
+export type ResponsiveImageConfig = Arr<ResponsiveImageOpts, 'mutable'> | ObjectOf<TT<ResponsiveImageOpts, 'mutable'>>;
 
-export const prepareConfig = (configs: ResponsiveConfigs, globalConfig: Config): (ResponsiveConfig & { matched?: boolean; })[] => {
-    const mergeConfig = (config: Config, name: string) => {
-        return { ...new ResponsiveConfig(), ...globalConfig, ...config, name };
+export const prepareConfig = (configs: ResponsiveImageConfig, globalConfig: ResponsiveImageOpts): (ResponsiveImageOptions & { matched?: boolean; })[] => {
+    const mergeConfig = (config: ResponsiveImageOpts, name: string) => {
+        return { ...new ResponsiveImageOptions(), ...globalConfig, ...config, name };
     };
 
-    const getConfig = (config: TT<Config, 'mutable'>, name: string): ResponsiveConfig[] => {
+    const getConfig = (config: TT<ResponsiveImageOpts, 'mutable'>, name: string): ResponsiveImageOptions[] => {
         return (Array.isArray(config) ? config : [ config ]).map(c => mergeConfig(c, name || c.name));
     };
 
@@ -115,7 +117,7 @@ export const prepareConfig = (configs: ResponsiveConfigs, globalConfig: Config):
 
 
 
-export class ResponsiveOptions extends ResponsiveConfig {
+export class ResponsiveOptions /* extends ResponsiveImageOnlyOptions */ {
     errorOnUnusedConfig: boolean = true;
     errorOnUnusedImage: boolean = true;
     errorOnEnlargement: boolean = true;
@@ -123,3 +125,5 @@ export class ResponsiveOptions extends ResponsiveConfig {
     silent: boolean = false;
     stats: boolean = true;
 }
+
+export type ResponsiveOpts = Partial<ResponsiveOptions>;

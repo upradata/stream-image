@@ -5,14 +5,14 @@ import sharp from 'sharp';
 import VinylFile from 'vinyl';
 import { green, red, yellow } from '@upradata/node-util';
 import { ensureArray } from '@upradata/util';
-import { ResponsiveConfig, ResponsiveOptions } from './config';
+import { ResponsiveImageOptions, ResponsiveImageOptions } from './config';
 import format from './format';
 import size from './size';
 
 
 const PLUGIN_NAME = 'Responsive';
 
-export default async function (file: Omit<VinylFile, 'contents'> & { contents: Buffer; }, config: ResponsiveConfig, options: ResponsiveOptions) {
+export default async function (file: Omit<VinylFile, 'contents'> & { contents: Buffer; }, config: ResponsiveImageOptions, options: ResponsiveImageOptions) {
     const errPrefix = `File "${file.relative}": `;
     const image = sharp(file.contents);
 
