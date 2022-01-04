@@ -12,7 +12,7 @@
             "DOM.Iterable"
         ],
         "skipLibCheck": true,
-        "moduleResolution": "node",
+        "moduleResolution": "nodenext",
         "sourceMap": true,
         "target": "ESNext",
         "traceResolution": false,

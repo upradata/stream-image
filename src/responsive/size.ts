@@ -1,4 +1,4 @@
-export default function (neededSize: string, originalSize: number) {
+export default function (neededSize: string | number, originalSize: number) {
 
     if (neededSize === undefined || neededSize === null) {
         return null;
@@ -13,7 +13,8 @@ export default function (neededSize: string, originalSize: number) {
         return Math.round(originalSize * percentage * 0.01);
     }
 
-    const size = parseInt(neededSize);
+    const size = parseInt(`${neededSize}`);
+
     if (Number.isNaN(size)) {
         throw new Error(`Wrong size "${size}"`);
     }

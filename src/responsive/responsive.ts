@@ -1,6 +1,5 @@
 import minimatch from 'minimatch';
 import PluginError from 'plugin-error';
-import plur from 'plur';
 import through2 from 'through2';
 import { green, magenta, white, oneLine } from '@upradata/node-util';
 import { prepareConfig, ResponsiveOptions, ResponsiveImageConfig, ResponsiveOpts } from './config';
@@ -10,7 +9,8 @@ import sharpVinyl from './sharp';
 const PLUGIN_NAME = 'Responsive';
 
 
-export function responsiveTransform(conf: ResponsiveImageConfig, opts: ResponsiveOpts) {
+export function responsiveTransform(config: ResponsiveImageConfig, opts: ResponsiveOpts) {
+    const plur$ = import('plur').then(m => m.default);
 
     const statistics = {
         total: 0,
@@ -21,12 +21,13 @@ export function responsiveTransform(conf: ResponsiveImageConfig, opts: Responsiv
         unmatchedPassed: 0
     };
 
-    const options = { ...opts, ...new ResponsiveOptions() };
+    const options = { ...new ResponsiveOptions(), ...opts };
 
 
-    const config = prepareConfig(conf || [], {});
+    const configs = prepareConfig(config || [], {});
 
     return through2.obj(async function (file, _enc, done) {
+
         if (file.isNull()) {
             this.push(file);
             return done();
@@ -38,12 +39,12 @@ export function responsiveTransform(conf: ResponsiveImageConfig, opts: Responsiv
 
         statistics.total++;
 
-        const matched = config.filter(conf => minimatch(file.relative, conf.name));
+        const matchedConfigs = configs.filter(conf => minimatch(file.relative, conf.name));
 
-        if (matched.length === 0) {
+        if (matchedConfigs.length === 0) {
             statistics.unmatched++;
 
-            const message = `File \`${file.relative}\`: Image does not match any config`;
+            const message = `File "${file.relative}": Image does not match any config`;
 
             if (options.errorOnUnusedImage)
                 return done(new PluginError(PLUGIN_NAME, message));
@@ -53,7 +54,7 @@ export function responsiveTransform(conf: ResponsiveImageConfig, opts: Responsiv
                 statistics.unmatchedPassed++;
 
                 if (!options.silent) {
-                    console.log(magenta`PLUGIN_NAME + ': (pass through without changes)`);
+                    console.log(magenta`${PLUGIN_NAME} ': (pass through without changes)`);
                 }
 
                 return done();
@@ -71,7 +72,7 @@ export function responsiveTransform(conf: ResponsiveImageConfig, opts: Responsiv
         statistics.matched++;
 
         try {
-            const files = await Promise.all(matched.map(conf => {
+            const files = await Promise.all(matchedConfigs.map(conf => {
                 // config item matched (can be matched multiple times)
                 conf.matched = true;
                 // there is an error in sharpVinyl typing where options is ResponsiveImageOptions instead of ResponsiveOptions
@@ -92,8 +93,10 @@ export function responsiveTransform(conf: ResponsiveImageConfig, opts: Responsiv
             done(e);
         }
 
-    }, cb => {
-        const notMatched = config.filter(conf => !conf.matched);
+    }, async cb => {
+        const plur = await plur$;
+
+        const notMatched = configs.filter(conf => !conf.matched);
 
         if (options.stats && !(options.silent && statistics.created === 0)) {
             const msg = oneLine`

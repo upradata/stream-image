@@ -5,14 +5,14 @@ import sharp from 'sharp';
 import VinylFile from 'vinyl';
 import { green, red, yellow } from '@upradata/node-util';
 import { ensureArray } from '@upradata/util';
-import { ResponsiveImageOptions, ResponsiveImageOptions } from './config';
+import { ResponsiveImageOptions, ResponsiveOptions } from './config';
 import format from './format';
 import size from './size';
 
 
 const PLUGIN_NAME = 'Responsive';
 
-export default async function (file: Omit<VinylFile, 'contents'> & { contents: Buffer; }, config: ResponsiveImageOptions, options: ResponsiveImageOptions) {
+export default async function (file: Omit<VinylFile, 'contents'> & { contents: Buffer; }, config: ResponsiveImageOptions, options: ResponsiveOptions) {
     const errPrefix = `File "${file.relative}": `;
     const image = sharp(file.contents);
 
@@ -125,10 +125,13 @@ export default async function (file: Omit<VinylFile, 'contents'> & { contents: B
         image.flop(config.flop);
         image.blur(config.blur);
 
-        if (typeof config.sharpen === 'number') {
-            image.sharpen(config.sharpen);
-        } else {
-            image.sharpen(config.sharpen.sigma, config.sharpen.flat, config.sharpen.jagged);
+        if (config.sharpen) {
+            if (typeof config.sharpen === 'number')
+                image.sharpen(config.sharpen);
+            else if (typeof config.sharpen === 'boolean')
+                image.sharpen();
+            else
+                image.sharpen(config.sharpen.sigma, config.sharpen.flat, config.sharpen.jagged);
         }
 
         image.threshold(config.threshold);
@@ -150,28 +153,25 @@ export default async function (file: Omit<VinylFile, 'contents'> & { contents: B
             config.chromaSubsampling = '4.4.4';
         }
 
-
-        const toFormat = ensureArray(config.format || format(filePath));
+        const imageFormat = config.format || format(filePath);
 
         const getClone = () => {
-            for (const format of toFormat) {
-                const clone = image.clone();
+            const clone = image.clone();
 
-                switch (format) {
-                    case 'jpeg':
-                    case 'jpg':
-                    case 'jpe':
-                        return clone.jpeg(config);
-                    case 'png':
-                        return clone.png(config);
-                    case 'webp':
-                        return clone.webp(config);
-                    case 'tiff':
-                        return clone.tiff({ tile: config.tile as boolean });
-                    case 'unsupported': return null;
-                    default:
-                        return clone.toFormat(format, config);
-                }
+            switch (imageFormat) {
+                case 'jpeg':
+                case 'jpg':
+                case 'jpe':
+                    return clone.jpeg(config);
+                case 'png':
+                    return clone.png(config);
+                case 'webp':
+                    return clone.webp(config);
+                case 'tiff':
+                    return clone.tiff({ tile: config.tile as boolean });
+                case 'unsupported': throw new Error('Unsupported format');
+                default:
+                    return clone.toFormat(imageFormat, config);
             }
         };
 
@@ -186,7 +186,7 @@ export default async function (file: Omit<VinylFile, 'contents'> & { contents: B
             contents: buffer
         });
 
-        newFile.extname = `.${format}`;
+        newFile.extname = `.${imageFormat}`;
 
         if (!options.silent) {
             console.log(green`${PLUGIN_NAME}: ${file.relative} -> ${newFile.relative}`);

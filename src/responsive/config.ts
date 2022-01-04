@@ -77,7 +77,7 @@ export class ResponsiveImageOptions {
     flip: boolean = false;
     flop: boolean = false;
     blur: boolean = false;
-    sharpen: number | { sigma?: number; flat?: number; jagged?: number; } = undefined;
+    sharpen: number | boolean | { sigma?: number; flat?: number; jagged?: number; } = true;
     threshold: number = undefined;
     gamma: boolean = false;
     grayscale: boolean = false;

@@ -1,6 +1,6 @@
 import { loadConfig, Plugin, DefaultPlugin, DefaultPlugins, OptimizeOptions, resolvePluginConfig, PresetDefault } from 'svgo';
 import { deepCopy, entries } from '@upradata/util';
-import { RequireOptions, requireModule } from '@upradata/node-util';
+import { RequireOptions, requireModuleDefault } from '@upradata/node-util';
 
 
 declare module 'svgo' {
@@ -33,6 +33,9 @@ export type ExtendedOptimizedOptions<Type extends PluginType = 'all'> = Omit<Opt
 
 
 const toOptimizeOptions = (options: ExtendedOptimizedOptions): OptimizeOptions => {
+    if (!options)
+        return null;
+
     if (Array.isArray(options.plugins))
         return options as OptimizeOptions;
 
@@ -54,16 +57,22 @@ const toOptimizeOptions = (options: ExtendedOptimizedOptions): OptimizeOptions =
 // data in module scope.
 const cache: { [ cwd: string ]: OptimizeOptions; } = {};
 
+
 // Load the config from svgo.config.js or configFile
 const loadConfigFromCache = async (configFile?: string, cwd?: string, tscOptions?: RequireOptions) => {
-    if (configFile !== null) {
-        if (configFile.endsWith('js')) {
+    if (configFile) {
+        // Since svgmin allows a function to modify config per-file, we
+        // want to prevent that function from making modifications to the
+        // returned config object that would bleed into subsequent usages of
+        // the config object.
+
+        if (/\..?js/.test(configFile)) {
             // Look for the config in the specified file. loadConfig() will
             // require() the file, which caches it for us.
-            return loadConfig(configFile, cwd);
+            return deepCopy(loadConfig(configFile, cwd));
         }
 
-        return requireModule<OptimizeOptions>(configFile, tscOptions);
+        return deepCopy(requireModuleDefault<OptimizeOptions>(configFile, tscOptions));
     }
 
     // Since no configFile was given, let loadConfig() find a file for us.
@@ -97,52 +106,50 @@ const extendDefaultPlugins = (plugins: Plugin[]): PresetDefault => {
 
 
 export type SvgMinOptions<Type extends PluginType = 'all'> = ExtendedOptimizedOptions<Type> & {
-    full?: boolean;
+    noOverride?: boolean;
+    noExtendDefaultPlugins?: boolean;
     configFile?: string;
     cwd?: string;
     tscOptions?: RequireOptions;
 };
 
-export const getSvgoConfig = async (options: SvgMinOptions = null, doDeepClone = false): Promise<OptimizeOptions> => {
+export const getSvgoConfig = async (options: SvgMinOptions = null): Promise<OptimizeOptions> => {
 
     // Construct the svgo config from the given options.
     // Get the options that are for this plugin and not for svgo.
-    const { full = false, configFile = null, cwd = process.cwd(), ...config } = options;
+    const { noOverride = false, noExtendDefaultPlugins = false, configFile = null, cwd = process.cwd(), ...config } = options;
     const optimizeOptions = toOptimizeOptions(config);
 
-    if (full)
+    if (noOverride)
         return optimizeOptions;
 
     // Extract the svgo plugins list from the config as we will need to handle
     // them specially later.
 
     // Merge the given config with the config loaded from file. (If no
-    // config file was found, svgo's loadConfig() returns null.)
+    // config file was found, svgo's toOptimizeOptions() returns null.)
 
-    const optionsFromFile = toOptimizeOptions(await loadConfigFromCache(configFile, cwd)) || {};
+    const optionsFromFileOrCache = toOptimizeOptions(await loadConfigFromCache(configFile, cwd)) || {};
 
     const mergedConfig = {
-        // Since svgmin allows a function to modify config per-file, we
-        // want to prevent that function from making modifications to the
-        // returned config object that would bleed into subsequent usages of
-        // the config object.
-        ...(doDeepClone ? deepCopy(optionsFromFile) : optionsFromFile),
+        ...optionsFromFileOrCache,
         ...optimizeOptions,
     };
 
     // Merge any plugins given in options.plugins
     const getPlugins = () => {
-        if (optionsFromFile?.plugins?.length > 0) {
+        if (optionsFromFileOrCache.plugins?.length > 0) {
             // If plugins are provided in a config file, they are assumed to be
             // a final list of plugins; according to svgo version 2 docs, the
             // config file is responsible for merging the default plugins list.
             // So we just need to merge the options.plugins into the list loaded
             // from the config file.
-            return mergePlugins(optionsFromFile.plugins, optimizeOptions.plugins);
+            return mergePlugins(optionsFromFileOrCache.plugins, optimizeOptions.plugins);
         }
 
         // Merge the default plugins list with options.plugins.
-        return [ extendDefaultPlugins(mergedConfig.plugins) ];
+        if (!noExtendDefaultPlugins)
+            return [ extendDefaultPlugins(mergedConfig.plugins) ];
 
     };
 

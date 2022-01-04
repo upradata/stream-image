@@ -25,10 +25,7 @@ export const svgMinTransform = (options?: SvgMinOpts) => {
 
         try {
 
-            const config = await getSvgoConfig(
-                isOptionsFunction ? await options(file) : options,
-                isOptionsFunction
-            );
+            const config = await getSvgoConfig(isOptionsFunction ? await options(file) : options);
 
             const { data, error, modernError } = optimize(String(file.contents), config);
 

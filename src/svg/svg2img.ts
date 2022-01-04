@@ -1,7 +1,7 @@
 import path from 'path';
 import PluginError from 'plugin-error';
 import stream from 'stream';
-import svg2img, { svg2imgOptions } from 'svg2img';
+import svg2img, { svg2imgOptions as Svg2ImageOptions } from 'svg2img';
 import through from 'through2';
 import { promisify } from 'util';
 import VinylFile from 'vinyl';
@@ -15,7 +15,7 @@ export enum Svg2ImgFormat {
 }
 
 
-export type Svg2ImgOptions = Omit<svg2imgOptions, 'format'> & { format?: Svg2ImgFormat; scale?: number; };
+export type Svg2ImgOptions = Omit<Svg2ImageOptions, 'format'> & { format?: Svg2ImgFormat; scale?: number; };
 
 class Svg2ImgTransform {
     public pluginName = this.constructor.name;
@@ -81,9 +81,10 @@ class Svg2ImgTransform {
 
     private async transformGulpSvg2Img(file: VinylFile, options: Svg2ImgOptions, cb: stream.TransformCallback) {
         try {
-            const svg2img$ = promisify<string, svg2imgOptions, Buffer>(svg2img);
+            // esm module to be imported in cjs
+            const svg2img$ = promisify<string, Svg2ImageOptions, Buffer>(svg2img);
             // because of format not being exported, we are obliged to cast-force the "options"
-            const buffer: Buffer = await svg2img$(file.path, options as unknown as svg2imgOptions);
+            const buffer: Buffer = await svg2img$(file.path, options as unknown as Svg2ImageOptions);
 
             const { name: fileNameNoExt, dir } = path.parse(file.path);
             const ext = options.format || 'png';
