@@ -1,15 +1,18 @@
-import { loadConfig, Plugin, DefaultPlugin, DefaultPlugins, OptimizeOptions, resolvePluginConfig, PresetDefault } from 'svgo';
+import { loadConfig, Plugin, DefaultPlugin, DefaultPlugins, OptimizeOptions, PresetDefault } from 'svgo';
+import { resolvePluginConfig } from 'svgo/lib/svgo/config';
 import { deepCopy, entries } from '@upradata/util';
 import { RequireOptions, requireModuleDefault } from '@upradata/node-util';
 
 
 declare module 'svgo' {
-    function resolvePluginConfig<P extends Plugin>(plugin: P): DefaultPlugin<P extends string ? P : P extends { name: string; } ? P[ 'name' ] : string>;
     interface OptimizedSvg {
         error?: string;
         modernError?: Error;
     }
 }
+
+
+type ResolvePluginConfig = <P extends Plugin>(plugin: P) => DefaultPlugin<P extends string ? P : P extends { name: string; } ? P[ 'name' ] : string>;
 
 
 
@@ -95,7 +98,7 @@ const extendDefaultPlugins = (plugins: Plugin[]): PresetDefault => {
             overrides: {
                 ...plugins.reduce((overrides, plugin) => {
 
-                    const { name, params } = resolvePluginConfig(plugin);
+                    const { name, params } = (resolvePluginConfig as ResolvePluginConfig)(plugin);
                     return { ...overrides, [ name ]: params };
 
                 }, {} as PresetDefault[ 'params' ][ 'overrides' ])
