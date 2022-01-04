@@ -33,8 +33,8 @@ export type ExtendedOptimizedOptions<Type extends PluginType = 'all'> = Omit<Opt
 
 
 const toOptimizeOptions = (options: ExtendedOptimizedOptions): OptimizeOptions => {
-    if (!options)
-        return null;
+    if (!options || !options.plugins)
+        return options as OptimizeOptions;
 
     if (Array.isArray(options.plugins))
         return options as OptimizeOptions;
